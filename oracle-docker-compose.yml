@@ -1,0 +1,8 @@
+version: '1'
+services: 
+  oracle-db:
+    image: oracleinanutshell/oracle-xe-11g:latest
+    container_name: oracle-11g
+    ports:
+      - 1521:1521
+      - 5500:5500
