@@ -8,6 +8,6 @@ PASSWORD=`python -c 'from notebook.auth import passwd;print(passwd())'`
 mkdir -p /root/.jupyter
 echo "c.NotebookApp.password = '$PASSWORD'" > $JUPYTER_CONFIG
 
-# 주피터 노트북 기동
+# 주피터 Lab 기동
 jupyter lab --no-browser --allow-root --ip=0.0.0.0 \
 --notebook-dir=$NOTEBOOK_DIR
