@@ -17,13 +17,28 @@ sudo mkdir -p /opt/airflow/dags \
 /opt/airflow/conf \
 /opt/airflow/connector \
 /opt/airflow/scripts \
-/opt/airflow/sql
+/opt/airflow/sql \
+/opt/airflow/sources
 
 sudo chmod -R 775 /opt/airflow
 
 sudo groupadd grp-airflow
 sudo gpasswd -a mentha grp-airflow
 sudo chown -R :grp-airflow /opt/airflow
+```
+
+- airflow webserver 초기 계정/패스워드 설정 필요시 
+- docker-compose.yaml 경로에 아래와 같은 .env 파일 생성
+```bash
+# .env 파일
+AIRFLOW_UID=50000
+_AIRFLOW_WWW_USER_USERNAME=계정명
+_AIRFLOW_WWW_USER_PASSWORD=패스워드
+```
+
+- init
+```bash
+docker-compose up airflow-init
 ```
 
 - 실행
@@ -46,4 +61,9 @@ redis - The redis - broker that forwards messages from scheduler to worker.
 ./dags - you can put your DAG files here.
 ./logs - contains logs from task execution and scheduler.
 ./plugins - you can put your custom plugins here.
+```
+
+중지 및 이미지 삭제
+```
+docker-compose down --volumes --rmi all
 ```

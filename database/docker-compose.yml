@@ -1,0 +1,22 @@
+version: '1'
+services: 
+  oracle-db:
+    image: oracleinanutshell/oracle-xe-11g:latest
+    container_name: oracle-11g
+    volumes:
+      - /opt/oracle-data:/u01/app/oracle-data
+    ports:
+      - 1512:1512
+      - 5500:5500
+
+# version: '2'
+# services:
+#   oracle:
+#     image: menthamin/oracle-xe-11g-hmall
+#     container_name: oracle11g
+#     volumes:
+#       - /opt/oracle-data:/u01/app/oracle-data
+      
+#     ports:
+#       - 1521:1521
+#       - 8080:8080
