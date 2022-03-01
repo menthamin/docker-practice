@@ -12,7 +12,7 @@ docker images | grep oracle
 - docker run 참고자료: https://github.com/oracle/docker-images/tree/main/OracleDatabase/SingleInstance
 ```bash
 docker run -d --name oracle-12c \
--p 1614:1521 -p 5500:5500 \
+-p 1521:1521 -p 5500:5500 \
 -v /opt/oradata:/opt/oracle/oradata \
 store/oracle/database-enterprise:12.2.0.1
 
@@ -21,21 +21,85 @@ store/oracle/database-enterprise:12.2.0.1
 # -e ORACLE_PWD=oracle \
 ```
 
+## docker root 패스워드로 접근하기
+```
+docker exec -it --user root oracle-12c /bin/bash
+chown oracle -R /opt/oracle
+```
+
 ## 접속테스트
 - 접속관련 참고자료
 - service_names에 별칭을 줄수 있음
 ```
 sqlplus sys/Oradoc_db1@//localhost:1614/ORCLCDB as sysdba
-sqlplus system/Oradoc_db1@//localhost:1614/ORCLCDB
+sqlplus system/Oradoc_db1@//localhost:1614/ORCLCDB.localdomain
 sqlplus pdbadmin/Oradoc_db1@//localhost:1614/ORCLPDB1
 
 sqlplus sys/Oradoc_db1@//localhost:1614/ORCLCDB.localdomain as sysdba
 sqlplus system/Oradoc_db1@localhost:1614/ORCLCDB.localdomain
 sqlplus pdbadmin/Oradoc_db1@//localhost:1614/ORCLPDB1.localdomain
+
+sqlplus system/Oradoc_db1@localhost:1614/ORCLCDB.localdomain
+
+show parameter db_name
+show parameter service
+alter system set service_names="ORCLCDB.localdomain",ORCLCDB,AAA;
+
+sqlplus system/Oradoc_db1@localhost:1614/AAA
 ```
 
 ## 한글적용 참고자료
 - http://1004lucifer.blogspot.com/2019/11/docker-oracle-12c-oracle.html
+```
+Connected to:
+Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production
+
+SQL>
+SQL> update sys.props$ set value$='KOREAN_KOREA.UTF8' where name='NLS_LANGUAGE';
+
+1 row updated.
+
+SQL> update sys.props$ set value$='UTF8' where name='NLS_CHARACTERSET';
+
+1 row updated.
+
+SQL> update sys.props$ set value$='UTF8' where name='NLS_NCHAR_CHARACTERSET';
+
+1 row updated.
+
+# 위의 UTF-8을 사용시 한글 1글자에 3byte가 사용되며 2byte사용을 원하는경우 아래의 쿼리로 업데이트를 해줘야 한다.
+update sys.props$ set value$='KO16MSWIN949' where name='NLS_CHARACTERSET';
+update sys.props$ set value$='KO16MSWIN949' where name='NLS_NCHAR_CHARACTERSET';
+update sys.props$ set value$='AMERICAN_AMERICA.KO16MSWIN949' where name='NLS_LANGUAGE';
+# 참고: https://blog.naver.com/ssarmang/20209683055
+
+
+
+
+SQL> commit;
+
+Commit complete.
+
+SQL> shutdown; (shutdown immediate; 명령어 권장)
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+ERROR:
+ORA-12514: TNS:listener does not currently know of service requested in connect
+descriptor
+
+
+Warning: You are no longer connected to ORACLE.
+SQL>
+SQL> startup;
+SP2-0640: Not connected
+SQL>
+SQL> conn / as sysdba
+Connected to an idle instance.
+SQL>
+SQL> startup;
+ORACLE instance started.
+```
 
 ## 옵션이 안먹는거 같다.
 - 아래는 기본정보
@@ -72,7 +136,25 @@ alter user new_user quota unlimited on new_user_tablespace;
 grant UNLIMITED TABLESPACE TO new_user;
 ```
 
+## sqlplus Insert 시 한글깨짐 해결
+```
+export NLS_LANG=KOREAN_KOREA.AL32UTF8
 
+ 
+
+쉘의 시작설정에 위의 값을 넣어준다.
+
+ 
+
+시작설정??
+
+/etc/profile
+나
+/home/(user_id)/.bash_profile
+
+
+출처: https://taisou.tistory.com/622 [Release Center]
+```
 
 ## Docker run 옵션 참고자료
 ```bash
@@ -122,3 +204,7 @@ Parameters:
                   For further details see the "Running scripts after setup and on startup" section below.
 ```
 
+타임존 변경
+```
+As of Docker 17.06-ce, Docker does not yet provide a way to pass down the TZ Unix environment variable from the host to the container. Because of that all containers run in the UTC timezone. If you would like to have your database run in a different timezone you can pass on the TZ environment variable within the docker run command via the -e option. An example would be: docker run ... -e TZ="Europe/Vienna" oracle/database:12.2.0.1-ee. Another option would be to specify two read-only volume mounts: docker run ... -v /etc/timezone:/etc/timezone:ro -v /etc/localtime:/etc/localtime:ro oracle/database:12.2.0.1-ee. This will synchronize the timezone of the the container with that of the Docker host.
+```
