@@ -41,3 +41,33 @@ docker run --name oracle-19 -p 1521:1521 -p 5500:5500 -e ORACLE_PWD=oracle -v /o
 
 ---
 ### 출처: https://bundw.tistory.com/56
+
+### docker root 유저로 접근하기
+```bash
+docker exec -it --user root oracle-19 /bin/bash
+출처: https://eyeballs.tistory.com/301
+```
+
+
+### 패스워드 변경
+```bash
+docker exec <container name> ./setPassword.sh <your password>
+```
+
+```bash
+ALTER SESSION SET "_ORACLE_SCRIPT"=TRUE;   
+ALTER SYSTEM SET SEC_CASE_SENSITIVE_LOGON = FALSE;
+
+CREATE TABLESPACE MY_DATA DATAFILE '/opt/oracle/oradata/MY_DATA01.dbf' SIZE 30G AUTOEXTEND ON;
+
+CREATE USER dev IDENTIFIED BY "tester"
+DEFAULT TABLESPACE MY_DATA
+PROFILE DEFAULT
+QUOTA UNLIMITED ON MY_DATA;
+
+
+-- 권한설정
+GRANT connect, RESOURCE, DBA TO dev;    --> 모든 권한 주기
+ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME UNLIMITED;    -- 비밀번호 만료기간을 무제한으로 변경
+
+```
